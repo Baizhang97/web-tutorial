@@ -409,11 +409,114 @@ XML解析方式分为两种：
     }
 ```
 
+**指定增加节点的在beijing节点之前**，是这样做的：
+
+​        
+
+```java
+    private static void add2(Document document) throws TransformerException {
+
+        //获取到beijing节点
+        Node beijing = document.getElementsByTagName("beijing").item(0);
+
+        //创建新的节点
+        Element element = document.createElement("guangxi");
+
+        //设置节点的文本内容
+        element.setTextContent("广西");
+
+        //获取到要创建节点的父节点，
+        Node parent = document.getElementsByTagName("china").item(0);
+
+        //将guangxi节点插入到beijing节点之前！
+        parent.insertBefore(element, beijing);
+
+        //将内存中的Dom树更新到硬盘文件中
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.transform(new DOMSource(document), new StreamResult("city.xml"));
+        
+    }
+```
 
 
 
+##### 5)删除
+
+现在我要删除的是beijing这个节点！
+
+```java
+    private static void delete(Document document) throws TransformerException {
+
+        //获取到beijing这个节点
+        Node node = document.getElementsByTagName("beijing").item(0);
+
+        //获取到父节点，然后通过父节点把自己删除了
+        node.getParentNode().removeChild(node);
+
+        //把内存中的Dom树更新到硬盘文件中
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.transform(new DOMSource(document), new StreamResult("city.xml"));
 
 
+    }
+```
+
+
+
+##### 5)修改
+
+将guangzhou节点的文本内容修改成广州你好
+
+```java
+    private static void update(Document document) throws TransformerException {
+
+        //获取到guangzhou节点
+        Node node = document.getElementsByTagName("guangzhou").item(0);
+
+        node.setTextContent("广州你好");
+
+        //将内存中的Dom树更新到硬盘文件中
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.transform(new DOMSource(document), new StreamResult("city.xml"));
+
+
+    }
+```
+
+##### 6)操作属性
+
+XML文档是可能带有属性值的，现在我们要guangzhou节点上的属性
+
+```java
+    private static void updateAttribute(Document document) throws TransformerException {
+
+        //获取到guangzhou节点
+        Node node = document.getElementsByTagName("guangzhou").item(0);
+
+        //现在node节点没有增加属性的方法，所以我就要找它的子类---Element
+        Element guangzhou = (Element) node;
+
+        //设置一个属性，如果存在则修改，不存在则创建！
+        guangzhou.setAttribute("play", "gzchanglong");
+
+        //如果要删除属性就用removeAttribute()方法
+
+
+        //将内存中的Dom树更新到硬盘文件中
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.transform(new DOMSource(document), new StreamResult("city.xml"));
+
+
+    }
+```
+
+- 效果：
+
+![img](https://segmentfault.com/img/remote/1460000013252706?w=1182&h=322)
 
 
 
@@ -433,6 +536,325 @@ XML解析方式分为两种：
 
 #### 4. DOM和SAX解析的区别
 
-**DOM解析读取整个XML文档，在内存中形成DOM树，很方便地对XML文档的内容进行增删改。但如果XML文档的内容过大，那么就会导致内存溢出！**
+DOM解析读取整个XML文档，在内存中形成DOM树，很方便地对XML文档的内容进行增删改。但如果XML文档的内容过大，那么就会导致内存溢出！
 
-**SAX解析采用部分读取的方式，可以处理大型文件，但只能对文件按顺序从头到尾解析一遍，不支持文件的增删改操作**
+SAX解析采用部分读取的方式，可以处理大型文件，但只能对文件按顺序从头到尾解析一遍，不支持文件的增删改操作
+
+
+
+参考：
+
+https://segmentfault.com/a/1190000013252686
+
+
+
+
+
+## 四、python读写
+
+test.xml
+
+```xml
+<?xml version="1.0" encoding="gb2312" standalone="yes"?>
+<data>
+    <country name="Liechtenstein">
+        <rank>1</rank>
+        <year>年份 2008</year>
+        <gdppc>141100</gdppc>
+        <neighbor name="Austria" direction="E"/>
+        <neighbor name="Switzerland" direction="W"/>
+    </country>
+    <country name="Singapore">
+        <rank>4</rank>
+        <year>2011</year>
+        <gdppc>59900</gdppc>
+        <neighbor name="Malaysia" direction="N"/>
+    </country>
+    <country name="Panama">
+        <rank>68</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+        <neighbor name="Costa Rica" direction="W"/>
+        <neighbor name="Colombia" direction="E"/>
+    </country>
+</data>
+```
+
+
+
+#### 1.lxml 模块
+
+Element Tree
+
+[`xml.etree.ElementTree`](https://docs.python.org/zh-cn/3/library/xml.etree.elementtree.html#module-xml.etree.ElementTree) 模块实现了一个简单高效的API，用于解析和创建XML数据。
+
+[`ElementTree`](https://docs.python.org/zh-cn/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree) 将整个XML文档表示为一个树， [`Element`](https://docs.python.org/zh-cn/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element) 表示该树中的单个节点。 与整个文档的交互（读写文件）通常在 [`ElementTree`](https://docs.python.org/zh-cn/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree) 级别完成。 与单个 XML 元素及其子元素的交互是在 [`Element`](https://docs.python.org/zh-cn/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element) 级别完成的。
+
+```
+import xml.etree.ElementTree as ET
+tree = ET.parse('country_data.xml')
+root = tree.getroot()
+```
+
+
+
+xml数据集里除了utf-8格式还有gb2312格式，parse方法并不支持gb2312格式
+
+因此使用 **lxml模块**
+
+ lxml是python的一个解析库，支持HTML和XML的解析，支持XPath解析方式，而且解析效率非常高
+
+```
+pip install lxml
+```
+
+https://lxml.de/tutorial.html
+
+
+
+##### 1)创建元素类 The Element class
+
+###### 1>创建元素
+
+变量的标签值即元素名称
+
+ Elements are easily created through the `Element` factory，
+
+The XML tag name of elements is accessed through the `tag` property:
+
+```
+from lxml import etree
+root = etree.Element("root")
+print(root.tag)
+```
+
+
+
+###### 2>创建子节点元素
+
+Elements are organised in an XML tree structure. To create child elements and add them to a parent element, you can use the `append()` method:
+
+However, this is so common that there is a shorter and much more efficient way to do this: the `SubElement` factory. It accepts the same arguments as the `Element` factory, but additionally requires the parent as first argument:
+
+To see that this is really XML, you can serialise the tree you have created:
+
+```
+root.append( etree.Element("child1") )
+child2 = etree.SubElement(root, "child2")
+child3 = etree.SubElement(root, "child3")
+print(etree.tostring(root, pretty_print=True))
+"""
+<root>
+  <child1/>
+  <child2/>
+  <child3/>
+</root>
+"""
+```
+
+
+
+###### 3>element 与 list 类似
+
+To make the access to these subelements easy and straight forward, elements mimic the behaviour of normal Python lists as closely as possible:
+
+```python
+>>> child = root[0]
+>>> print(child.tag)
+child1
+
+>>> print(len(root))
+3
+
+>>> root.index(root[1]) # lxml.etree only!
+1
+
+>>> children = list(root)
+
+>>> for child in root:
+...     print(child.tag)
+child1
+child2
+child3
+
+>>> root.insert(0, etree.Element("child0"))
+>>> start = root[:1]
+>>> end   = root[-1:]
+
+>>> print(start[0].tag)
+child0
+>>> print(end[0].tag)
+child3
+```
+
+There is another important case where the behaviour of Elements in lxml (in 2.0 and later) deviates from that of lists and from that of the original ElementTree (prior to version 1.3 or Python 2.7/3.2)
+
+删除子节点：
+
+```
+>>> for child in root:
+...     print(child.tag)
+child0
+child1
+child2
+child3
+>>> root[0] = root[-1]  # this moves the element in lxml.etree!
+>>> for child in root:
+...     print(child.tag)
+child3
+child1
+child2
+```
+
+
+
+###### 4>属性 Elements carry attributes as a dict
+
+XML elements support attributes. You can create them directly in the Element factory:
+
+Attributes are just unordered name-value pairs, so a very convenient way of dealing with them is through the dictionary-like interface of Elements:
+
+```
+root = etree.Element("root", interesting="totally")
+etree.tostring(root)
+
+print(root.get("interesting"))
+print(root.get("hello"))
+root.set("hello", "Huhu")
+print(root.get("hello"))
+etree.tostring(root)
+for name, value in sorted(root.items()):
+	print('%s = %r' % (name, value))
+
+
+"""
+b'<root interesting="totally"/>'
+totally
+b'<root interesting="totally" hello="Huhu"/>'
+hello = 'Huhu'
+interesting = 'totally'
+"""
+```
+
+For the cases where you want to do item lookup or have other reasons for getting a 'real' dictionary-like object, e.g. for passing it around, you can use the `attrib` property:
+
+```
+attributes = root.attrib
+attributes["hello"] = "Guten Tag"
+print(attributes["hello"])
+"""
+Guten Tag
+"""
+```
+
+###### 5>文本Elements contain text
+
+```
+root = etree.Element("root")
+root.text = "TEXT"
+etree.tostring(root)
+
+"""
+b'<root>TEXT</root>'
+"""
+```
+
+However, if XML is used for tagged text documents such as (X)HTML, text can also appear between different elements, right in the middle of the tree:
+
+```
+<html><body>Hello<br/>World</body></html>
+```
+
+Here, the `<br/>` tag is surrounded by text. This is often referred to as *document-style* or *mixed-content* XML. Elements support this through their `tail` property. It contains the text that directly follows the element, up to the next element in the XML tree:
+
+```
+>>> html = etree.Element("html")
+>>> body = etree.SubElement(html, "body")
+>>> body.text = "TEXT"
+
+>>> etree.tostring(html)
+b'<html><body>TEXT</body></html>'
+
+>>> br = etree.SubElement(body, "br")
+>>> etree.tostring(html)
+b'<html><body>TEXT<br/></body></html>'
+
+>>> br.tail = "TAIL"
+>>> etree.tostring(html)
+b'<html><body>TEXT<br/>TAIL</body></html>'
+```
+
+The two properties `.text` and `.tail` are enough to represent any text content in an XML document. This way, the ElementTree API does not require any [special text nodes](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-1312295772) in addition to the Element class, that tend to get in the way fairly often (as you might know from classic [DOM](http://www.w3.org/TR/DOM-Level-3-Core/core.html) APIs).
+
+However, there are cases where the tail text also gets in the way. For example, when you serialise an Element from within the tree, you do not always want its tail text in the result (although you would still want the tail text of its children). For this purpose, the `tostring()` function accepts the keyword argument `with_tail`:
+
+```
+>>> etree.tostring(br)
+b'<br/>TAIL'
+>>> etree.tostring(br, with_tail=False) # lxml.etree only!
+b'<br/>'
+```
+
+If you want to read *only* the text, i.e. without any intermediate tags, you have to recursively concatenate all `text` and `tail` attributes in the correct order. Again, the `tostring()` function comes to the rescue, this time using the `method` keyword:
+
+```
+>>> etree.tostring(html, method="text")
+b'TEXTTAIL'
+```
+
+
+
+###### 6>Using XPath to find text
+
+
+
+
+
+
+
+#### 2.DOM解析
+
+python中用xml.dom.minidom来解析xml文件，实例如下：
+
+
+
+
+
+
+
+
+
+## 五、与 json 对比
+
+
+
+**XML的优点**
+
+- A.格式统一，符合标准；
+- B.容易与其他系统进行远程交互，数据共享比较方便
+
+**XML的缺点**
+
+- A.XML文件庞大，文件格式复杂，传输占带宽；
+- B.服务器端和客户端都需要花费大量代码来解析XML，导致服务器端和客户端代码变得异常复杂且不易维护；
+- C.客户端不同浏览器之间解析XML的方式不一致，需要重复编写很多代码；
+- D.服务器端和客户端解析XML花费较多的资源和时间。
+
+**JSON的优点**
+
+- A.数据格式比较简单，易于读写，格式都是压缩的，占用带宽小；
+- B.易于解析，客户端JavaScript可以简单的通过eval_r()进行JSON数据的读取；
+- C.支持多种语言，包括ActionScript, C, C#, ColdFusion, Java, JavaScript, Perl, PHP, Python, Ruby等服务器端语言，便于服务器端的解析；
+- D.因为JSON格式能直接为服务器端代码使用，大大简化了服务器端和客户端的代码开发量，且完成任务不变，并且易于维护
+
+**JSON的缺点**
+
+- A.没有XML格式这么推广的深入人心和喜用广泛，没有XML那么通用性；
+- B.JSON片段的创建和验证过程比一般的XML稍显复杂。
+
+
+
+
+
+
+

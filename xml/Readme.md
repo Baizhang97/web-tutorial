@@ -20,6 +20,37 @@
 
 ## 二、语法
 
+#### 0.DTD规范文档
+
+**DTD的基本结构**
+
+DTD是用来规范XML文件的格式，必须出现在头文件中，一遍XML校验器在一开始便可以得到XML文件的格式定义。DTD是一套关于标记符的语法规则，它定义了可用在文档中的元素、属性和实体，以及这些内容之间的关系。
+
+
+
+###### DTD的基本结构
+
+DTD语法格式如下：
+
+```
+<!DOCTYPE 根元素名称[
+<!ELEMENT 子元素名称(#PCDATA)>
+]>
+```
+
+参数说明：
+
+- `<!DOCTYPE`：文档类型声明的起始定界符；
+- `根元素名称[`：一个XML文档只有一个根元素，如果XML文档使用DTD，那么根元素的名称就在这里指定；
+- `<!ELEMENT子元素名称(#PCDATA)>`：用来定义出现在文档中的元素；
+- `]>`：文档类型声明的结束界定符。
+
+
+
+
+
+
+
 
 
 #### １.文档声明
@@ -612,7 +643,7 @@ https://lxml.de/tutorial.html
 
 
 
-##### 1)创建元素类 The Element class
+##### 1)元素类 The Element class
 
 ###### 1>创建元素
 
@@ -808,15 +839,153 @@ b'TEXTTAIL'
 
 
 
+###### 7>Tree iteration
+
+
+
+###### 8>Serialisation
+
+
+
+
+
+
+
+##### 2)The ElementTree class
+
+tree = etree.ElementTree(root)
+
+- **tree.docinfo.doctype**
+
+- **tree.docinfo.xml_version**
+- **etree.tostring(tree)**
+- **etree.tostring(tree.getroot())**
+
+
+
+An `ElementTree` is mainly a document wrapper around a tree with a root node. It provides a couple of methods for serialisation and general document handling.
+
+```
+>>> root = etree.XML('''\
+... <?xml version="1.0"?>
+... <!DOCTYPE root SYSTEM "test" [ <!ENTITY tasty "parsnips"> ]>
+... <root>
+...   <a>&tasty;</a>
+... </root>
+... ''')
+
+>>> tree = etree.ElementTree(root)
+>>> print(tree.docinfo.xml_version)
+1.0
+>>> print(tree.docinfo.doctype)
+<!DOCTYPE root SYSTEM "test">
+
+>>> tree.docinfo.public_id = '-//W3C//DTD XHTML 1.0 Transitional//EN'
+>>> tree.docinfo.system_url = 'file://local.dtd'
+>>> print(tree.docinfo.doctype)
+<!DOCTYPE root PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "file://local.dtd">
+```
+
+An `ElementTree` is also what you get back when you call the `parse()` function to parse files or file-like objects (see the parsing section below).
+
+One of the important differences is that the `ElementTree` class serialises as a complete document, as opposed to a single `Element`. This includes top-level processing instructions and comments, as well as a DOCTYPE and other DTD content in the document:
+
+```
+>>> print(etree.tostring(tree))  # lxml 1.3.4 and later
+<!DOCTYPE root PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "file://local.dtd" [
+<!ENTITY tasty "parsnips">
+]>
+<root>
+  <a>parsnips</a>
+</root>
+```
+
+In the original xml.etree.ElementTree implementation and in lxml up to 1.3.3, the output looks the same as when serialising only the root Element:
+
+```
+>>> print(etree.tostring(tree.getroot()))
+<root>
+  <a>parsnips</a>
+</root>
+```
+
+This serialisation behaviour has changed in lxml 1.3.4. Before, the tree was serialised without DTD content, which made lxml lose DTD information in an input-output cycle.
+
+
+
+
+
+##### 3)解析字符串 & 文件Parsing from strings and files
+
+
+
+- **fromstring() function**
+
+```
+some_xml_data = "<root>data</root>"
+root = etree.fromstring(some_xml_data)
+etree.tostring(root)
+
+"""
+b'<root>data</root>'
+"""
+```
+
+
+
+
+
+- **XML() function**
+
+```
+>>> root = etree.XML("<root>data</root>")
+>>> print(root.tag)
+root
+>>> etree.tostring(root)
+b'<root>data</root>'
+
+>>> root = etree.HTML("<p>data</p>")
+>>> etree.tostring(root)
+b'<html><body><p>data</p></body></html>'
+```
+
+
+
+- **parse() function**
+
+`parse()` function is used to parse from files and file-like objects.Note that `parse()` returns an ElementTree object, not an Element object as the string parser functions:
+
+```
+```
+
+
+
+
+
+##### 4)写入xml文件
+
+![image-20210621113112352](img/image-20210621113112352.png)
+
+```python
+from lxml import etree
+tree = etree.parse("test.xml")
+
+root = tree.getroot()
+# etree.indent(root)
+print(etree.tostring(tree,encoding='gb2312'))
+
+tree.write('gen_test.xml',encoding=tree.docinfo.encoding,standalone=tree.docinfo.standalone)
+```
+
 
 
 
 
 #### 2.DOM解析
 
+
+
 python中用xml.dom.minidom来解析xml文件，实例如下：
-
-
 
 
 

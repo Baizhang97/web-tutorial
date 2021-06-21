@@ -1,8 +1,10 @@
 from lxml import etree
-root = etree.Element("root")
-print(root.tag)
-root.append( etree.Element("child1") )
-child2 = etree.SubElement(root, "child2")
-child3 = etree.SubElement(root, "child3")
-print(etree.tostring(root, pretty_print=True))
-pass
+tree = etree.parse("test.xml")
+
+root = tree.getroot()
+# etree.indent(root)
+print(etree.tostring(tree,encoding='gb2312'))
+
+
+def save_xml():
+    tree.write('gen_test.xml',encoding=tree.docinfo.encoding,standalone=tree.docinfo.standalone)

@@ -9,9 +9,9 @@
     </country>
     <country name="Singapore">
         <rank>4</rank>
-        <year>2011</year>
+        <year>nianfen</year>
         <gdppc>59900</gdppc>
-        <neighbor name="Malaysia" direction="N"/>
+        <neighbor name="Malaysia" direction="al;skdfh"/>
     </country>
     <country name="Panama">
         <rank>68</rank>

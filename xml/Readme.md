@@ -91,7 +91,7 @@ DTD语法格式如下：
 **属性是作为XML元素中的一部分的，命名规范也是和XML元素一样的！**
 
 ```
-    <!--属性名是name，属性值是china-->
+    <!--标签/元素名（Tag）是 中国，名属性名是name，属性值是china-->
     <中国 name="china">
 
     </中国>
@@ -839,13 +839,135 @@ b'TEXTTAIL'
 
 
 
+
+
+**The `xpath()` method**
+
+快速得到该路径下的所有节点
+
+For ElementTree, the xpath method performs a global XPath query against the document (if absolute) or against the root node (if relative):
+
+```
+>>> f = StringIO('<foo><bar></bar></foo>')
+>>> tree = etree.parse(f)
+
+>>> r = tree.xpath('/foo/bar')
+>>> len(r)
+1
+>>> r[0].tag
+'bar'
+
+>>> r = tree.xpath('bar')
+>>> r[0].tag
+'bar'
+```
+
+When `xpath()` is used on an Element, the XPath expression is evaluated against the element (if relative) or against the root tree (if absolute):
+
+```
+>>> root = tree.getroot()
+>>> r = root.xpath('bar')
+>>> r[0].tag
+'bar'
+
+>>> bar = root[0]
+>>> r = bar.xpath('/foo/bar')
+>>> r[0].tag
+'bar'
+
+>>> tree = bar.getroottree()
+>>> r = tree.xpath('/foo/bar')
+>>> r[0].tag
+'bar'
+```
+
+The `xpath()` method has support for XPath variables:
+
+```
+>>> expr = "//*[local-name() = $name]"
+
+>>> print(root.xpath(expr, name = "foo")[0].tag)
+foo
+
+>>> print(root.xpath(expr, name = "bar")[0].tag)
+bar
+
+>>> print(root.xpath("$text", text = "Hello World!"))
+Hello World!
+```
+
+
+
+
+
+
+
 ###### 7>Tree iteration
+
+对于上面这样的问题，需要递归遍历树并对其元素进行处理，树迭代是一种非常方便的解决方案。元素为此目的提供了一个树迭代器。它按照文档顺序生成元素，也就是说，如果您将树序列化为XML，元素的标记将出现的顺序
+
+如果您只对单个Tag感兴趣，那么您可以将它的名称传递给iter()，让它为您进行筛选。从lxml 3.0开始，您还可以传递多个标记来在迭代期间拦截多个标记。
+
+```
+root = etree.Element("root")
+etree.SubElement(root, "child").text = "Child 1"
+etree.SubElement(root, "child").text = "Child 2"
+etree.SubElement(root, "another").text = "Child 3"
+"""
+<root>
+  <child>Child 1</child>
+  <child>Child 2</child>
+  <another>Child 3</another>
+</root>
+"""
+
+for element in root.iter():
+	print("%s - %s" % (element.tag, element.text))
+for element in root.iter("another", "child"):
+	print("%s - %s" % (element.tag, element.text))
+```
+
+By default, iteration yields all nodes in the tree, including ProcessingInstructions, Comments and Entity instances. If you want to make sure only Element objects are returned, you can pass the `Element` factory as tag parameter:
+
+```
+>>> root.append(etree.Entity("#234"))
+>>> root.append(etree.Comment("some comment"))
+
+>>> for element in root.iter():
+...     if isinstance(element.tag, basestring):  # or 'str' in Python 3
+...         print("%s - %s" % (element.tag, element.text))
+...     else:
+...         print("SPECIAL: %s - %s" % (element, element.text))
+root - None
+child - Child 1
+child - Child 2
+another - Child 3
+SPECIAL: &#234; - &#234;
+SPECIAL: <!--some comment--> - some comment
+
+>>> for element in root.iter(tag=etree.Element):
+...     print("%s - %s" % (element.tag, element.text))
+root - None
+child - Child 1
+child - Child 2
+another - Child 3
+
+>>> for element in root.iter(tag=etree.Entity):
+...     print(element.text)
+&#234;
+```
+
+Note that passing a wildcard `"*"` tag name will also yield all `Element` nodes (and only elements).
+
+In `lxml.etree`, elements provide [further iterators](https://lxml.de/api.html#iteration) for all directions in the tree: children, parents (or rather ancestors) and siblings.
+
+
 
 
 
 ###### 8>Serialisation
 
-
+序列化通常使用返回字符串的tostring()函数，或写入文件、类文件对象或URL(通过FTP PUT或HTTP POST)的ElementTree.write()方法。这两个调用都接受相同的关键字参数，如用于格式化输出的pretty print，或用于选择非纯ASCII的特定输出编码
 
 
 
